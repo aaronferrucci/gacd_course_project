@@ -14,7 +14,5 @@ X_test <- read.table("test/X_test.txt", col.names=X.cols)
 X_train <- read.table("train/X_train.txt", col.names=X.cols)
 X <- rbind(X_test, X_train)
 
-colnames(X) <- X.cols
-
 data <- cbind(subject, activity, X)
 
