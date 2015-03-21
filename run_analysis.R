@@ -23,6 +23,11 @@ subject <- rbind(subject_test, subject_train)
 activity_test <- read.table("test/y_test.txt", col.names=c("activity"))
 activity_train <- read.table("train/y_train.txt", col.names=c("activity"))
 activity <- rbind(activity_test, activity_train)
+#  Meanwhile, 3. Use descriptive activity names to name the activities in 
+# the data set
+act <- read.table("activity_labels.txt")
+activities <- act$V2
+activity_labels <- activities[activity$activity]
 
 #    c. read the feature names into a vector
 features <- read.table("features.txt")
@@ -71,7 +76,7 @@ X <- X[ !duplicated(names(X))]
 # Select only the mean() and std() observations.
 X <- select(X, contains("mean()"), contains("std()"))
 
-data <- cbind(subject, activity, X)
+data <- cbind(subject, activity_labels, X)
 # We now have a fairly tidy data frame, with 66 variables + subject, activity.
 # Save some memory by deleting temp variables:
 rm(list = c(
@@ -79,7 +84,8 @@ rm(list = c(
   "activity_test", "activity_train",
   "X_test", "X_train",
   "subject", "activity", "X",
-  "features", "X.cols"
+  "features", "X.cols",
+  "activities", "activity_labels", "act"
 ))
 
 
