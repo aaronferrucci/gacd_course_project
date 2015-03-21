@@ -88,4 +88,15 @@ rm(list = c(
   "activities", "activity_labels", "act"
 ))
 
+#  4. Appropriately label the data set with descriptive variable names. 
+#   The first two column names seem straightforward: "subject", "activity".
+#   The data measurement column names might be considered a bit cryptic: 
+#   tBodyAcc-mean()-X, for example. But they are complete, and concise.
+#   Furthermore, consider if we decided to rename things to be more
+#   human-friendly; perhaps "time: Body Acceleration, mean(X)". Now, what
+#   if we had to go back to the original data source? Our variables are no
+#   longer named similarly, and that's an additional complexity we'd have
+#   to deal with in our communications. (If I wanted to rename the
+#   measurements, I'd also provide a "reverse rename" to get the names back
+#   into their original form. This just sounds like work for the sake of work.)
 
