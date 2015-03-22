@@ -1,4 +1,3 @@
-# setwd("C:/Users/aaronf/Documents/classes/data_science/getting_and_cleaning_data/gacd_course_project")
 # You should create one R script called run_analysis.R that does the 
 # following:
 #
@@ -12,6 +11,7 @@
 #     subject.
 #
 
+library(dplyr)
 
 #  1. Merge the training and the test sets to create one data set.
 #    a. rbind the "subject" test and training data into one data set.
@@ -27,7 +27,7 @@ activity <- rbind(activity_test, activity_train)
 # the data set
 act <- read.table("activity_labels.txt")
 activities <- act$V2
-activity_labels <- activities[activity$activity]
+activity_label <- activities[activity$activity]
 
 #    c. read the feature names into a vector
 features <- read.table("features.txt")
@@ -43,6 +43,7 @@ X <- rbind(X_test, X_train)
 colnames(X) <- X.cols
 #    remove duplicate columns (none of these are mean() or std())
 X <- X[ !duplicated(names(X))] 
+
 #  2. Extract only the measurements on the mean and standard deviation,
 # that is:
 # tBodyAcc-{mean(),std()}-{x,y,z}
@@ -76,27 +77,39 @@ X <- X[ !duplicated(names(X))]
 # Select only the mean() and std() observations.
 X <- select(X, contains("mean()"), contains("std()"))
 
-data <- cbind(subject, activity_labels, X)
+data <- cbind(subject, activity_label, X)
 # We now have a fairly tidy data frame, with 66 variables + subject, activity.
 # Save some memory by deleting temp variables:
-rm(list = c(
-  "subject_test", "subject_train",
-  "activity_test", "activity_train",
-  "X_test", "X_train",
-  "subject", "activity", "X",
-  "features", "X.cols",
-  "activities", "activity_labels", "act"
-))
 
 #  4. Appropriately label the data set with descriptive variable names. 
 #   The first two column names seem straightforward: "subject", "activity".
-#   The data measurement column names might be considered a bit cryptic: 
-#   tBodyAcc-mean()-X, for example. But they are complete, and concise.
-#   Furthermore, consider if we decided to rename things to be more
-#   human-friendly; perhaps "time: Body Acceleration, mean(X)". Now, what
-#   if we had to go back to the original data source? Our variables are no
-#   longer named similarly, and that's an additional complexity we'd have
-#   to deal with in our communications. (If I wanted to rename the
-#   measurements, I'd also provide a "reverse rename" to get the names back
-#   into their original form. This just sounds like work for the sake of work.)
+#   The data measurement column names have the virtue of conciseness, but
+#   they're inconvenient in R (data$tBodyAcc-mean()-Y doesn't behave
+#   correctly). Therefore apply a simple transformation to the original
+#   column names: remove parens, substitute underscore for dash.
+names <- names(data)
+names <- gsub("()", "", names, fixed=TRUE)
+names <- gsub("-", "_", names, fixed=TRUE)
+colnames(data) <- names
+
+#  5. From the data set in step 4, create a second, independent tidy data 
+#     set with the average of each variable for each activity and each
+#     subject.
+
+data2 <- group_by(data, subject, activity_label)
+# At this point, summarize(data2, count=n()) delivers 180 rows - that's 30
+# subjects, each with multiple entries per each of the 6 activity labels.
+
+meanit <- function(x) { sprintf("mean(%s)", x) }
+# Make a list of strings, like this: "mean(tBodyAcc_mean_X)",
+# "mean(tBodyAcc_mean_Y)", ...
+summary_vars <- lapply(names(data)[3:length(names(data))], meanit)
+
+# Use the SE version of summarize, so the list of summary vars can be passed
+# in.
+tidy_data <- summarize_(data2, .dots = summary_vars)
+tidy_data_file <- "tidy_data.txt"
+# Write out the data.
+write.table(tidy_data, file = tidy_data_file, row.name=FALSE)
+print(sprintf("Tidy data has been written to '%s'. Have a look there, or see variable 'tidy_data'", tidy_data_file))
 
