@@ -100,14 +100,14 @@ data2 <- group_by(data, subject, activity_label)
 # At this point, summarize(data2, count=n()) delivers 180 rows - that's 30
 # subjects, each with multiple entries per each of the 6 activity labels.
 
-meanit <- function(x) { sprintf("mean(%s)", x) }
+make_means <- function(x) { sprintf("mean(%s)", x) }
 # Make a list of strings, like this: "mean(tBodyAcc_mean_X)",
 # "mean(tBodyAcc_mean_Y)", ...
-summary_vars <- lapply(names(data)[3:length(names(data))], meanit)
-
+tidy_means <- lapply(names(data)[3:length(names(data))], make_means)
+tidy_names <- lapply(names(data)[3:length(names(data))], make.names)
 # Use the SE version of summarize, so the list of summary vars can be passed
 # in.
-tidy_data <- summarize_(data2, .dots = summary_vars)
+tidy_data <- summarize_(data2, .dots = setNames(tidy_means, tidy_names))
 tidy_data_file <- "tidy_data.txt"
 # Write out the data.
 write.table(tidy_data, file = tidy_data_file, row.name=FALSE)
