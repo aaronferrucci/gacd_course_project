@@ -32,8 +32,6 @@ activity_label <- activities[activity$activity]
 #    c. read the feature names into a vector
 features <- read.table("features.txt")
 X.cols <- features$V2
-# X.cols <- gsub("()", "", X.cols, fixed=TRUE)
-# X.cols <- gsub("-", " ", X.cols, fixed=TRUE)
 
 #    d. rbind the "X" test and training data into one data set, labeled with
 #       the feature names.
@@ -60,26 +58,24 @@ X <- X[ !duplicated(names(X))]
 # fBodyAcc-{mean(),std()}-{x,y,z}
 # fBodyAccJerk-{mean(),std()}-{x,y,z}
 # fBodyGyro-{mean(),std()}-{x,y,z}
-# * fBodyGyroJerk-{mean(),std()}-{x,y,z}
+# fBodyBodyGyroJerk-{mean(),std()}-{x,y,z}
 # fBodyAccMag-{mean(),std()}
-# fBodyAccJerkMag-{mean(),std()}
-# fBodyGyroMag-{mean(),std()}
-# fBodyGyroJerkMa-{mean(),std()}
+# fBodyBodyAccJerkMag-{mean(),std()}
+# fBodyBodyGyroMag-{mean(),std()}
+# fBodyBodyGyroJerkMag-{mean(),std()}
 
 # Each {x,y,z} value is 6 measurements ({mean(), std()} for {x,y.z});
 # each other value is 2 measurements ({mean(), std()}.
 # There are 8 {x,y,z} measurements, and 9 {mean(),std()} measurements, for
 # a total of 8*6 + 9*2 = 66 retained measurements.
 #
-# Note that one {x,y,z} measurement is missing:
-#   fBodyGyroJerk-{mean(),std()}-{x,y,z}
-
 # Select only the mean() and std() observations.
 X <- select(X, contains("mean()"), contains("std()"))
 
+# Combine subject, activity_label and X into a data.frame.
 data <- cbind(subject, activity_label, X)
+
 # We now have a fairly tidy data frame, with 66 variables + subject, activity.
-# Save some memory by deleting temp variables:
 
 #  4. Appropriately label the data set with descriptive variable names. 
 #   The first two column names seem straightforward: "subject", "activity".
@@ -98,9 +94,11 @@ colnames(data) <- names
 
 data2 <- group_by(data, subject, activity_label)
 # At this point, summarize(data2, count=n()) delivers 180 rows - that's 30
-# subjects, each with multiple entries per each of the 6 activity labels.
+# subjects, each with an entry per each of the 6 activity labels.
 
+# Here's a handy function for generating string names for summarize():
 make_means <- function(x) { sprintf("mean(%s)", x) }
+
 # Make a list of strings, like this: "mean(tBodyAcc_mean_X)",
 # "mean(tBodyAcc_mean_Y)", ...
 tidy_means <- lapply(names(data)[3:length(names(data))], make_means)
@@ -109,7 +107,11 @@ tidy_names <- lapply(names(data)[3:length(names(data))], make.names)
 # in.
 tidy_data <- summarize_(data2, .dots = setNames(tidy_means, tidy_names))
 tidy_data_file <- "tidy_data.txt"
+
 # Write out the data.
 write.table(tidy_data, file = tidy_data_file, row.name=FALSE)
-print(sprintf("Tidy data has been written to '%s'. Have a look there, or see variable 'tidy_data'", tidy_data_file))
+
+# Helpful message for the user.
+cat(sprintf("Tidy data has been written to '%s'.\n", tidy_data_file))
+cat(sprintf("Read it back in with:\n    t <- read.table(\"%s\", header=TRUE)\n", tidy_data_file))
 
