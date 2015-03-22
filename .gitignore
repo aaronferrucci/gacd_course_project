@@ -8,3 +8,4 @@ test
 tidy_data.txt
 train
 .Rhistory
+.*.swp
